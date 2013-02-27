@@ -98,7 +98,7 @@ def square():
     print weights
 
 
-def graph2all_data(graph, start=0, NUM_QUESTION=None, NUM_ANSWER=None):
+def graph2all_data(graph, start=0, NUM_QUESTION=None, NUM_ANSWER=None, add_offset_column=False):
     if not NUM_QUESTION:
         NUM_QUESTION = len(set(g[0] for g in graph))
     if not NUM_ANSWER:
@@ -119,10 +119,12 @@ def graph2all_data(graph, start=0, NUM_QUESTION=None, NUM_ANSWER=None):
     from itertools import product
     qs = product([-1, 1], repeat=NUM_QUESTION)
     for q in qs:
-        yield (list(q) + [1], find_answer(q))
+        if add_offset_column:
+            q = list(q) + [1]
+        yield (q, find_answer(q))
 
 
-def ex3(graph=graph):
+def with_all_data(graph=graph):
     "with all data"
     data = list(graph2all_data(graph))
     mat_phi = np.array([d[0] for d in data])
@@ -140,7 +142,7 @@ def ex3(graph=graph):
     print_mat(weights)
     return weights
 
-def ex4(SIZE=10):
+def with_all_data_large(SIZE=10):
     # 5 -> 1sec
     # 7 -> 3sec
     # 10 -> 30sec
@@ -149,7 +151,7 @@ def ex4(SIZE=10):
         for i in range(SIZE)
     ]
     graph[-1][-1] = ~SIZE
-    ex3(graph)
+    with_all_data(graph)
 
 
 def one_way_tree2():
@@ -187,7 +189,7 @@ def one_way_tree2():
     print num_ok / (2.0 ** NUM_QUESTION)
 
 
-def correct_ratio(NUM_QUESTION, NUM_ANSWER, weights):
+def correct_ratio(NUM_QUESTION, NUM_ANSWER, weights, add_offset_column=False):
     from itertools import product
     qs = product([-1, 1], repeat=NUM_QUESTION)
     num_ok = 0
@@ -196,7 +198,8 @@ def correct_ratio(NUM_QUESTION, NUM_ANSWER, weights):
             a = NUM_ANSWER - 1
         else:
             a = q.index(1.0)
-        q = list(q) + [1]
+        if add_offset_column:
+            q = list(q) + [1]
         probs = logreg.get_multi_prob(np.array(q), weights)
         if np.array(probs).argmax() == a:
             num_ok += 1
@@ -206,7 +209,7 @@ def correct_ratio(NUM_QUESTION, NUM_ANSWER, weights):
     return num_ok / (2.0 ** NUM_QUESTION)
 
 
-def ex4_2():
+def with_all_data_large_2():
     # 5 -> 1sec
     # 7 -> 3sec
     # 10 -> 30sec
@@ -218,7 +221,7 @@ def ex4_2():
         for i in range(SIZE)
     ]
     graph[-1][-1] = ~SIZE
-    weights = ex3(graph)
+    weights = with_all_data(graph)
     print correct_ratio(NUM_QUESTION - 1, NUM_ANSWER, weights)
 
 
@@ -258,11 +261,8 @@ def sampling():
     return weights
 
 
-#sampling()
-
-
-def change_scale():
-    SIZE = 5
+def change_scale(size=10, add_offset_column=True):
+    SIZE = 10
     NUM_QUESTION = SIZE
     NUM_ANSWER = SIZE + 1
     graph = [
@@ -270,7 +270,7 @@ def change_scale():
         for i in range(SIZE)
     ]
     graph[-1][-1] = ~SIZE
-    data = list(graph2all_data(graph))
+    data = list(graph2all_data(graph, add_offset_column=add_offset_column))
     mat_phi = np.array([d[0] for d in data])
     mat_phi[:,1] *= 10
     mat_phi[:,3] *= 100
@@ -278,7 +278,7 @@ def change_scale():
     mat_t = np.array([d[1] for d in data])
     print mat_t
 
-    weights = [logreg.learn((mat_phi, mat_t[:, i])) for i in range(mat_t.shape[1])]
+    weights = [logreg.learn((mat_phi, mat_t[:, i]), 1000) for i in range(mat_t.shape[1])]
 
     for d in mat_phi:
         probs = logreg.get_multi_prob(d, weights)
@@ -286,8 +286,10 @@ def change_scale():
         print ' '.join('%0.2f' % p for p in probs)
 
     print_mat(weights)
-    print correct_ratio(NUM_QUESTION, NUM_ANSWER, weights)
+    print correct_ratio(NUM_QUESTION, NUM_ANSWER, weights, add_offset_column=add_offset_column)
 
+#change_scale(10, False)
+change_scale(10, True)
 
 def _test():
     import doctest
