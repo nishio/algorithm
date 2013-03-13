@@ -1,13 +1,12 @@
 """
 impl. of "BLUE*: a Blue-Fringe Procedure for Learning DFA with Noisy Data" Marc Sebban et. al.
-
-
-
 """
+
 from math import sqrt
 from scipy import stats
 risk = 0.5  # alpha in the paper: risk factor: 0.5<- strongest .. weakest->0
 ualpha = stats.norm().ppf(1 - risk)  # ppf: percentile point function
+
 
 class DFA(object):
     def __init__(self):
@@ -134,6 +133,7 @@ class DFA(object):
         for k in self.color_map:
             self.color_map[k] = 'none'
 
+
 def count_miss(dfa, e_plus, e_minus):
     miss = 0
     for e in e_plus:
@@ -145,7 +145,6 @@ def count_miss(dfa, e_plus, e_minus):
     return miss
 
 
-
 def _tmp_merge(dfa, x, y, e_plus, e_minus):
     miss_before = count_miss(dfa, e_plus, e_minus)
     tmp = dfa.merge(x, y)
@@ -155,17 +154,11 @@ def _tmp_merge(dfa, x, y, e_plus, e_minus):
 
 
 def are_mergeable(dfa, x, y, e_plus, e_minus):
-    print 'are_mergeable %s and %s?' % (x, y)
     miss_before, miss_after, N, _ = _tmp_merge(dfa, x, y, e_plus, e_minus)
-    print 'miss %d->%d' % (miss_before, miss_after)
-    print 'miss not inclease?', (miss_after <= miss_before)
-    #return (miss_after <= miss_before)
-    #import pdb; pdb.set_trace()
     phat = (miss_before + miss_after) / N / 2
 
     zalpha = ualpha * sqrt(2 * phat * (1 - phat) / N)
     T = (miss_after - miss_before) / N
-    print 'p^=%s, zalpha=%s, T=%s, margeable?=%s' % (phat, zalpha, T, T <= zalpha)
     if T <= zalpha:
         return True
     return False
@@ -193,8 +186,6 @@ def do_best_promotion(dfa, promotable, e_plus, e_minus):
 
 
 def do_best_merging(dfa, mergable, e_plus, e_minus):
-    print 'merge', mergable
-    print dfa
     delta = 1.0
     buf = []
     for b, r in mergable:
@@ -211,8 +202,6 @@ def do_best_merging(dfa, mergable, e_plus, e_minus):
 
     buf.sort()
     ret = buf[0][1]
-    print 'best merge:', buf[0][2]
-    print '->', ret
     return ret
 
 
@@ -241,7 +230,6 @@ def make_colored_prefix_tree_acceptor(data):
 
 
 def bluestar(e_plus, e_minus):
-    #import pdb; pdb.set_trace()
     dfa = make_colored_prefix_tree_acceptor(e_plus)
     while dfa.exist_blue():
         p = []
@@ -256,14 +244,11 @@ def bluestar(e_plus, e_minus):
                 p.append(b)
 
         if p:
-            print 'promote'
-            print dfa
             dfa = do_best_promotion(dfa, p, e_plus, e_minus)
-            print '->', dfa
         else:
             assert m
             dfa = do_best_merging(dfa, m, e_plus, e_minus)
-        print dfa.exist_blue()
+
     dfa.remove_unreachable()
     dfa.remove_color()
     return dfa
@@ -272,12 +257,5 @@ def bluestar(e_plus, e_minus):
 def _test():
     import doctest
     doctest.testmod()
-    #bluestar('aa aaaa aaaaaa'.split(), 'a aaa aaaaa'.split())
-    #print bluestar('ba baa aaa aaaa baaa aaaaaa aaaaaaaaaaa'.split(), 'bb bbb aab abab aaaba'.split())
-    #print bluestar('a', 'b')
-    #print bluestar('a b'.split(), 'c')
-    #print bluestar('aa ba'.split(), '')
-    #print bluestar('aa ba'.split(), 'b')
-    #print bluestar('aa aba abba abbba abbbba abbbbba'.split(), 'b ab abab aaa'.split())
-    print bluestar('ab aab abb aabb'.split(), 'a b'.split())
+
 _test()
