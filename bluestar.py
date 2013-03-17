@@ -72,13 +72,18 @@ class DFA(object):
         return [k for k in self.next_map if self.color_map.get(k) == 'red']
 
     def is_ok(self, s):
-        cur = 0
+        """
+        returns if s is acceptable.
+        it returns True/False/None.
+        None means no way to become True.
+        """
+        state = 0
         for c in s:
-            next = self.next_map[cur].get(c)
-            if next == None:
-                return False
-            cur = next
-        return self.ok_map.get(cur, False)
+            state = self.next_map[state].get(c)
+            if state == None:
+                return None
+
+        return self.ok_map.get(state, False)
 
     def is_blue(self, k):
         return self.color_map[k] == 'blue'

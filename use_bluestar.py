@@ -20,7 +20,7 @@ class Target(object):  # bad impl.
             raise RuntimeError
         self.closed = True
 
-"""
+
 class Target(object):  # good impl.
     def __init__(self):
         self.opened = False
@@ -38,7 +38,7 @@ class Target(object):  # good impl.
         if not self.opened:
             raise RuntimeError
         self.opened = False
-"""
+
 
 e_plus = ['o', 'oc', 'ow', 'owc', 'oww', 'owwc', 'owww', 'oco', 'owco']
 e_minus = ['c', 'w', 'ocw', 'ocoo', 'owwwo']
@@ -104,6 +104,7 @@ def find_mismatch(dfa):
     while cur:
         for s in cur:
             if len(s) > 20:
+                print count
                 print 'no mismatch found in len <= 20'
                 return
             #print s
